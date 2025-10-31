@@ -417,7 +417,7 @@
                 this.logs = [];
                 
                 // ⚠️ CẤU HÌNH QUAN TRỌNG: Thay thế URL này bằng Web App URL của Google Apps Script
-                this.scriptUrl = 'YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE';
+                this.scriptUrl = 'https://script.google.com/macros/s/AKfycby50is8FCYyW7ja856MXQXni0iZlvwNbPxq89D00FbvPLhF1xPmdZBBIQBI4ArsQq5i/exec';
                 
                 this.init();
             }
@@ -675,7 +675,7 @@
 
             async sendDataToSheets(type, value) {
                 try {
-                    if (this.scriptUrl === 'YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE') {
+                    if (this.scriptUrl === 'https://script.google.com/macros/s/AKfycby50is8FCYyW7ja856MXQXni0iZlvwNbPxq89D00FbvPLhF1xPmdZBBIQBI4ArsQq5i/exec') {
                         throw new Error('Chưa cấu hình Web App URL');
                     }
                     
