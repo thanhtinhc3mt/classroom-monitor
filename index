@@ -1,0 +1,779 @@
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎓 Giám Sát Lớp Học</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            text-align: center;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            border-radius: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+        
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        
+        .controls {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+        }
+        
+        .btn {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 50px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 5px;
+            color: white;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(76, 175, 80, 0.4);
+        }
+        
+        .btn-primary:disabled {
+            background: #bdc3c7;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .status-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .status-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border-left: 4px solid #3498db;
+        }
+        
+        .status-value {
+            font-weight: bold;
+            color: #e74c3c;
+        }
+        
+        .status-value.connected {
+            color: #27ae60;
+        }
+        
+        .monitoring {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+        }
+        
+        .video-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin: 0 auto 20px;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+        
+        #cameraFeed {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+        
+        .motion-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 0, 0, 0.1);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+        }
+        
+        .motion-overlay.detected {
+            opacity: 1;
+            animation: pulse 0.5s ease-in-out;
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 0.8; }
+            50% { opacity: 0.3; }
+            100% { opacity: 0.8; }
+        }
+        
+        .audio-visualizer {
+            width: 100%;
+            height: 100px;
+            background: #2c3e50;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+        
+        #audioCanvas {
+            width: 100%;
+            height: 100%;
+        }
+        
+        .metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+        
+        .metric {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border-left: 4px solid #e74c3c;
+        }
+        
+        .metric-value {
+            font-weight: bold;
+            color: #e74c3c;
+            font-size: 1.2em;
+        }
+        
+        .metric-value.active {
+            color: #27ae60;
+            animation: glow 1s ease-in-out infinite alternate;
+        }
+        
+        @keyframes glow {
+            from { text-shadow: 0 0 5px #27ae60; }
+            to { text-shadow: 0 0 20px #27ae60; }
+        }
+        
+        .settings {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+        }
+        
+        .setting-group {
+            margin: 15px 0;
+        }
+        
+        .setting-group label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        
+        .setting-group input[type="range"] {
+            width: 100%;
+            -webkit-appearance: none;
+            height: 8px;
+            border-radius: 4px;
+            background: #ddd;
+            outline: none;
+        }
+        
+        .setting-group input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #9b59b6;
+            cursor: pointer;
+        }
+        
+        .logs {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+        }
+        
+        .logs-container {
+            max-height: 300px;
+            overflow-y: auto;
+            background: #2c3e50;
+            padding: 20px;
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+        }
+        
+        .log-entry {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 10px;
+            padding: 8px;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+        }
+        
+        .log-entry:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        .log-time {
+            color: #3498db;
+            font-weight: bold;
+            min-width: 80px;
+        }
+        
+        .log-message {
+            color: #ecf0f1;
+        }
+        
+        .log-entry.info {
+            border-left: 3px solid #3498db;
+        }
+        
+        .log-entry.warning {
+            border-left: 3px solid #f39c12;
+            background: rgba(243, 156, 18, 0.1);
+        }
+        
+        .log-entry.error {
+            border-left: 3px solid #e74c3c;
+            background: rgba(231, 76, 60, 0.1);
+        }
+        
+        .log-entry.success {
+            border-left: 3px solid #27ae60;
+            background: rgba(39, 174, 96, 0.1);
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .controls,
+            .monitoring,
+            .settings,
+            .logs {
+                padding: 20px;
+            }
+            
+            .status-grid,
+            .metrics {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎓 Giám Sát Lớp Học Thông Minh</h1>
+            <p>Theo dõi âm thanh và chuyển động của học sinh</p>
+        </header>
+
+        <div class="controls">
+            <div style="text-align: center; margin-bottom: 20px;">
+                <button id="initCamera" class="btn btn-primary">
+                    📷 Khởi Tạo Camera
+                </button>
+                <button id="initMic" class="btn btn-primary">
+                    🎤 Khởi Tạo Microphone
+                </button>
+            </div>
+
+            <div class="status-grid">
+                <div class="status-item">
+                    <span>Camera:</span>
+                    <span id="cameraStatus" class="status-value">Chưa kết nối</span>
+                </div>
+                <div class="status-item">
+                    <span>Microphone:</span>
+                    <span id="micStatus" class="status-value">Chưa kết nối</span>
+                </div>
+                <div class="status-item">
+                    <span>Kết nối Sheets:</span>
+                    <span id="sheetsStatus" class="status-value">Đang kiểm tra...</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="monitoring">
+            <h2 style="text-align: center; margin-bottom: 20px;">👁️ Giám Sát Real-time</h2>
+            
+            <div class="video-container">
+                <video id="cameraFeed" autoplay muted></video>
+                <div class="motion-overlay" id="motionOverlay"></div>
+            </div>
+            
+            <div class="audio-visualizer">
+                <canvas id="audioCanvas"></canvas>
+            </div>
+            
+            <div class="metrics">
+                <div class="metric">
+                    <span>Mức Âm Thanh:</span>
+                    <span id="audioLevel" class="metric-value">0 dB</span>
+                </div>
+                <div class="metric">
+                    <span>Chuyển Động:</span>
+                    <span id="motionLevel" class="metric-value">Không phát hiện</span>
+                </div>
+                <div class="metric">
+                    <span>Dữ Liệu Gửi:</span>
+                    <span id="dataCount" class="metric-value">0 bản ghi</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="settings">
+            <h2 style="margin-bottom: 20px;">⚙️ Cài Đặt</h2>
+            
+            <div class="setting-group">
+                <label for="thresholdSlider">Ngưỡng Âm Thanh: <span id="thresholdValue">40 dB</span></label>
+                <input type="range" id="thresholdSlider" min="20" max="80" value="40">
+            </div>
+            
+            <div class="setting-group">
+                <label for="motionSensitivity">Độ Nhạy Chuyển Động: <span id="motionValue">5</span></label>
+                <input type="range" id="motionSensitivity" min="1" max="10" value="5">
+            </div>
+            
+            <div class="setting-group">
+                <label for="intervalSlider">Tần Suất Gửi Dữ Liệu: <span id="intervalValue">30 giây</span></label>
+                <input type="range" id="intervalSlider" min="5" max="60" value="30">
+            </div>
+        </div>
+
+        <div class="logs">
+            <h2 style="margin-bottom: 20px;">📝 Nhật Ký Hoạt Động</h2>
+            <div id="logs" class="logs-container">
+                <div class="log-entry info">
+                    <span class="log-time">22:51:56</span>
+                    <span class="log-message">Hệ thống khởi tạo...</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class ClassroomMonitor {
+            constructor() {
+                this.cameraStream = null;
+                this.audioContext = null;
+                this.analyser = null;
+                this.dataArray = null;
+                this.canvas = null;
+                this.ctx = null;
+                this.animationId = null;
+                this.motionDetectionActive = false;
+                this.audioThreshold = 40;
+                this.motionSensitivity = 5;
+                this.dataSendInterval = 30;
+                this.dataCount = 0;
+                this.logs = [];
+                
+                // ⚠️ CẤU HÌNH QUAN TRỌNG: Thay thế URL này bằng Web App URL của Google Apps Script
+                this.scriptUrl = 'https://script.google.com/macros/s/AKfycby50is8FCYyW7ja856MXQXni0iZlvwNbPxq89D00FbvPLhF1xPmdZBBIQBI4ArsQq5i/exec';
+                
+                this.init();
+            }
+
+            async init() {
+                this.log('info', 'Hệ thống khởi tạo...');
+                this.setupElements();
+                this.setupEventListeners();
+                this.setupCanvas();
+                
+                // Test kết nối Google Apps Script
+                await this.testGoogleSheetsConnection();
+                
+                this.log('success', 'Hệ thống sẵn sàng sử dụng');
+            }
+
+            setupElements() {
+                this.elements = {
+                    cameraBtn: document.getElementById('initCamera'),
+                    micBtn: document.getElementById('initMic'),
+                    cameraStatus: document.getElementById('cameraStatus'),
+                    micStatus: document.getElementById('micStatus'),
+                    sheetsStatus: document.getElementById('sheetsStatus'),
+                    cameraFeed: document.getElementById('cameraFeed'),
+                    motionOverlay: document.getElementById('motionOverlay'),
+                    audioCanvas: document.getElementById('audioCanvas'),
+                    audioLevel: document.getElementById('audioLevel'),
+                    motionLevel: document.getElementById('motionLevel'),
+                    dataCount: document.getElementById('dataCount'),
+                    thresholdSlider: document.getElementById('thresholdSlider'),
+                    motionSlider: document.getElementById('motionSensitivity'),
+                    intervalSlider: document.getElementById('intervalSlider'),
+                    thresholdValue: document.getElementById('thresholdValue'),
+                    motionValue: document.getElementById('motionValue'),
+                    intervalValue: document.getElementById('intervalValue'),
+                    logsContainer: document.getElementById('logs')
+                };
+            }
+
+            setupEventListeners() {
+                this.elements.cameraBtn.addEventListener('click', () => this.initCamera());
+                this.elements.micBtn.addEventListener('click', () => this.initMicrophone());
+                
+                this.elements.thresholdSlider.addEventListener('input', (e) => {
+                    this.audioThreshold = parseInt(e.target.value);
+                    this.elements.thresholdValue.textContent = `${this.audioThreshold} dB`;
+                });
+                
+                this.elements.motionSlider.addEventListener('input', (e) => {
+                    this.motionSensitivity = parseInt(e.target.value);
+                    this.elements.motionValue.textContent = this.motionSensitivity;
+                });
+                
+                this.elements.intervalSlider.addEventListener('input', (e) => {
+                    this.dataSendInterval = parseInt(e.target.value);
+                    this.elements.intervalValue.textContent = `${this.dataSendInterval} giây`;
+                });
+            }
+
+            setupCanvas() {
+                this.canvas = this.elements.audioCanvas;
+                this.ctx = this.canvas.getContext('2d');
+                this.canvas.width = this.canvas.offsetWidth;
+                this.canvas.height = this.canvas.offsetHeight;
+            }
+
+            async initCamera() {
+                try {
+                    this.log('info', 'Đang khởi tạo camera...');
+                    
+                    this.cameraStream = await navigator.mediaDevices.getUserMedia({
+                        video: { 
+                            width: 640, 
+                            height: 480,
+                            frameRate: { ideal: 30 }
+                        },
+                        audio: false
+                    });
+                    
+                    this.elements.cameraFeed.srcObject = this.cameraStream;
+                    this.elements.cameraStatus.textContent = 'Đã kết nối';
+                    this.elements.cameraStatus.className = 'status-value connected';
+                    this.elements.cameraBtn.disabled = true;
+                    
+                    this.motionDetectionActive = true;
+                    this.startMotionDetection();
+                    
+                    this.log('success', 'Camera khởi tạo thành công');
+                    
+                } catch (error) {
+                    this.log('error', `Lỗi khởi tạo camera: ${error.message}`);
+                    this.elements.cameraStatus.textContent = 'Lỗi kết nối';
+                }
+            }
+
+            async initMicrophone() {
+                try {
+                    this.log('info', 'Đang khởi tạo microphone...');
+                    
+                    const stream = await navigator.mediaDevices.getUserMedia({
+                        audio: {
+                            sampleRate: 44100,
+                            channelCount: 1,
+                            echoCancellation: true,
+                            noiseSuppression: true,
+                            autoGainControl: true
+                        }
+                    });
+                    
+                    this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                    const source = this.audioContext.createMediaStreamSource(stream);
+                    this.analyser = this.audioContext.createAnalyser();
+                    
+                    this.analyser.fftSize = 2048;
+                    this.dataArray = new Uint8Array(this.analyser.frequencyBinCount);
+                    
+                    source.connect(this.analyser);
+                    
+                    this.elements.micStatus.textContent = 'Đã kết nối';
+                    this.elements.micStatus.className = 'status-value connected';
+                    this.elements.micBtn.disabled = true;
+                    
+                    this.startAudioMonitoring();
+                    
+                    this.log('success', 'Microphone khởi tạo thành công');
+                    
+                } catch (error) {
+                    this.log('error', `Lỗi khởi tạo microphone: ${error.message}`);
+                    this.elements.micStatus.textContent = 'Lỗi kết nối';
+                }
+            }
+
+            startAudioMonitoring() {
+                const analyzeAudio = () => {
+                    this.analyser.getByteFrequencyData(this.dataArray);
+                    
+                    let sum = 0;
+                    for (let i = 0; i < this.dataArray.length; i++) {
+                        sum += this.dataArray[i];
+                    }
+                    let average = sum / this.dataArray.length;
+                    let dbLevel = Math.round(20 * Math.log10(average / 128));
+                    
+                    if (dbLevel < 0) dbLevel = 0;
+                    
+                    this.elements.audioLevel.textContent = `${dbLevel} dB`;
+                    this.drawAudioVisualizer();
+                    
+                    if (dbLevel > this.audioThreshold) {
+                        this.elements.audioLevel.className = 'metric-value active';
+                        this.log('warning', `Âm thanh vượt ngưỡng: ${dbLevel} dB`);
+                        this.sendDataToSheets('audio', dbLevel);
+                    } else {
+                        this.elements.audioLevel.className = 'metric-value';
+                    }
+                    
+                    this.animationId = requestAnimationFrame(analyzeAudio);
+                };
+                
+                analyzeAudio();
+            }
+
+            drawAudioVisualizer() {
+                this.ctx.fillStyle = '#2c3e50';
+                this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+                
+                const barWidth = this.canvas.width / this.dataArray.length;
+                let x = 0;
+                
+                for (let i = 0; i < this.dataArray.length; i++) {
+                    const barHeight = (this.dataArray[i] / 255) * this.canvas.height;
+                    
+                    const hue = (i / this.dataArray.length) * 120;
+                    this.ctx.fillStyle = `hsl(${hue}, 70%, 50%)`;
+                    
+                    this.ctx.fillRect(x, this.canvas.height - barHeight, barWidth, barHeight);
+                    x += barWidth;
+                }
+            }
+
+            startMotionDetection() {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                canvas.width = 640;
+                canvas.height = 480;
+                
+                let previousFrame = null;
+                const pixelThreshold = 30;
+                const motionThreshold = this.motionSensitivity * 1000;
+                
+                const detectMotion = () => {
+                    if (!this.motionDetectionActive || !this.cameraStream) return;
+                    
+                    ctx.drawImage(this.elements.cameraFeed, 0, 0, canvas.width, canvas.height);
+                    const currentFrame = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                    
+                    if (previousFrame) {
+                        let motionPixels = 0;
+                        const data = currentFrame.data;
+                        const prevData = previousFrame.data;
+                        
+                        for (let i = 0; i < data.length; i += 4) {
+                            const diff = Math.abs(data[i] - prevData[i]) +
+                                        Math.abs(data[i + 1] - prevData[i + 1]) +
+                                        Math.abs(data[i + 2] - prevData[i + 2]);
+                            
+                            if (diff > pixelThreshold) {
+                                motionPixels++;
+                            }
+                        }
+                        
+                        const motionPercentage = (motionPixels / (canvas.width * canvas.height)) * 100;
+                        
+                        if (motionPercentage > motionThreshold) {
+                            this.elements.motionLevel.textContent = 'Phát hiện chuyển động';
+                            this.elements.motionLevel.className = 'metric-value active';
+                            this.elements.motionOverlay.classList.add('detected');
+                            
+                            this.log('warning', `Phát hiện chuyển động: ${motionPercentage.toFixed(2)}%`);
+                            this.sendDataToSheets('motion', motionPercentage);
+                        } else {
+                            this.elements.motionLevel.textContent = 'Không phát hiện';
+                            this.elements.motionLevel.className = 'metric-value';
+                            this.elements.motionOverlay.classList.remove('detected');
+                        }
+                    }
+                    
+                    previousFrame = currentFrame;
+                    setTimeout(detectMotion, 100);
+                };
+                
+                detectMotion();
+            }
+
+            async testGoogleSheetsConnection() {
+                try {
+                    if (this.scriptUrl === 'https://script.google.com/macros/s/AKfycby50is8FCYyW7ja856MXQXni0iZlvwNbPxq89D00FbvPLhF1xPmdZBBIQBI4ArsQq5i/exec') {
+                        throw new Error('Chưa cấu hình Web App URL');
+                    }
+                    
+                    const response = await fetch(`${this.scriptUrl}?action=test`);
+                    
+                    if (response.ok) {
+                        this.elements.sheetsStatus.textContent = 'Đã kết nối';
+                        this.elements.sheetsStatus.className = 'status-value connected';
+                    } else {
+                        throw new Error('Response not ok');
+                    }
+                } catch (error) {
+                    this.elements.sheetsStatus.textContent = 'Chưa kết nối';
+                    this.elements.sheetsStatus.className = 'status-value';
+                    this.log('warning', 'Chưa kết nối với Google Sheets');
+                }
+            }
+
+            async sendDataToSheets(type, value) {
+                try {
+                    if (this.scriptUrl === 'https://script.google.com/macros/s/AKfycby50is8FCYyW7ja856MXQXni0iZlvwNbPxq89D00FbvPLhF1xPmdZBBIQBI4ArsQq5i/exec') {
+                        throw new Error('Chưa cấu hình Web App URL');
+                    }
+                    
+                    const data = {
+                        timestamp: new Date().toISOString(),
+                        type: type,
+                        value: value,
+                        audioThreshold: this.audioThreshold,
+                        motionSensitivity: this.motionSensitivity
+                    };
+                    
+                    const response = await fetch(`${this.scriptUrl}?action=saveData`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(data)
+                    });
+                    
+                    if (response.ok) {
+                        this.dataCount++;
+                        this.elements.dataCount.textContent = `${this.dataCount} bản ghi`;
+                        this.log('success', `Đã gửi dữ liệu: ${type} = ${value}`);
+                    }
+                } catch (error) {
+                    this.log('error', `Lỗi gửi dữ liệu: ${error.message}`);
+                }
+            }
+
+            startPeriodicDataSend() {
+                setInterval(() => {
+                    if (this.dataCount > 0) {
+                        this.sendDataToSheets('status', {
+                            audioLevel: this.elements.audioLevel.textContent,
+                            motionStatus: this.elements.motionLevel.textContent,
+                            timestamp: new Date().toISOString()
+                        });
+                    }
+                }, this.dataSendInterval * 1000);
+            }
+
+            log(level, message) {
+                const timestamp = new Date().toLocaleTimeString();
+                const logEntry = {
+                    timestamp,
+                    level,
+                    message,
+                    id: Date.now()
+                };
+                
+                this.logs.unshift(logEntry);
+                
+                if (this.logs.length > 50) {
+                    this.logs = this.logs.slice(0, 50);
+                }
+                
+                this.displayLogs();
+            }
+
+            displayLogs() {
+                this.elements.logsContainer.innerHTML = this.logs.map(log => `
+                    <div class="log-entry ${log.level}">
+                        <span class="log-time">${log.timestamp}</span>
+                        <span class="log-message">${log.message}</span>
+                    </div>
+                `).join('');
+            }
+
+            destroy() {
+                if (this.animationId) {
+                    cancelAnimationFrame(this.animationId);
+                }
+                
+                if (this.cameraStream) {
+                    this.cameraStream.getTracks().forEach(track => track.stop());
+                }
+                
+                if (this.audioContext) {
+                    this.audioContext.close();
+                }
+                
+                this.motionDetectionActive = false;
+            }
+        }
+
+        // Khởi tạo ứng dụng
+        document.addEventListener('DOMContentLoaded', () => {
+            const monitor = new ClassroomMonitor();
+            
+            window.addEventListener('beforeunload', () => {
+                monitor.destroy();
+            });
+            
+            setTimeout(() => {
+                monitor.startPeriodicDataSend();
+            }, 5000);
+        });
+    </script>
+</body>
+</html>
